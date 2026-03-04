@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
+import React, { useState, useRef, useCallback, useEffect, createContext, useContext, useMemo } from "react";
 
 /* ─── Dark Mode context ─────────────────────────────────── */
 const DM = createContext(false);
@@ -723,7 +723,7 @@ function PickerSheet({seatId,friends,onSelect,onClose,seats,trunkOccupants,boote
   const bg = usePaintBg();
   const dm=useDM();
   return(
-    <div style={{position:"absolute",inset:0,zIndex:200,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+    <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
       <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.2760)",backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)"}}/>
       <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.14)",display:"flex",flexDirection:"column",overflow:"hidden"}}
         onTouchStart={e=>{ e.currentTarget._sy=e.touches[0].clientY; }} onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sy > 44) onClose(); }}
@@ -855,7 +855,7 @@ function AvatarEditSheet({person,onClose,onSave,onHonk}){
   const titleMap={ask:"",menu:"",text:"Text or Emoji",color:"Colour",photo:"Photo Album"};
   const avatarColor = isBooted ? "rgba(180,50,50,0.72)" : bgColor;
   return(
-    <div style={{position:"absolute",inset:0,zIndex:300,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+    <div style={{position:"fixed",inset:0,zIndex:300,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
       <div onClick={()=>{ if(step==="color") onSave({...person,initial:text||person.initial,friendColor:bgColor}); onClose(); }} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
       <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 20px 20px",paddingBottom:"calc(20px + env(safe-area-inset-bottom, 0px))"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
@@ -928,7 +928,7 @@ function PaintShopSheet({colors,onClose,onChange,onPeekTab,onPeekEnd}){
   ];
   const sheetBg = dm?"#22223a":"#d4d4da";
   return(
-    <div style={{position:"absolute",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+    <div style={{position:"fixed",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
       <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)",visibility:peeking?"hidden":"visible"}}/>
       <div style={{position:"relative",zIndex:1,background:peeking?"transparent":sheetBg,borderRadius:"22px 22px 0 0",boxShadow:peeking?"none":"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 12px",paddingBottom:"calc(12px + env(safe-area-inset-bottom, 0px))",maxHeight:"80vh",display:"flex",flexDirection:"column"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
@@ -1076,7 +1076,7 @@ function SettingsSheet({settings,onClose,onToggle,onOpenPaintShop,onHonk,onCode}
     {key:"notifySend", label:"Notify others when I move them", sub:"Send a notification when you change someone's seat"},
   ];
   return(
-    <div style={{position:"absolute",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+    <div style={{position:"fixed",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
       <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
       <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 0",paddingBottom:"env(safe-area-inset-bottom, 0px)"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
@@ -1865,8 +1865,8 @@ export default function App(){
           </div>
         </div>
         <TabBar active={tab} onChange={setTab}/>
-        <div className="modal-root" style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:200,pointerEvents:"none",display:(picking||pickingTrunk||avatarEdit||emojiTarget||emojiPerson||showSettings||showPaintShop||kickPending)?"block":"none"}}>
-          <div style={{pointerEvents:"auto",position:"absolute",top:0,left:0,right:0,bottom:0}}>
+        <div className="modal-root" style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:200,pointerEvents:"none",display:(picking||pickingTrunk||avatarEdit||emojiTarget||emojiPerson||showSettings||showPaintShop||kickPending)?"flex":"none"}}>
+          <div style={{pointerEvents:"auto",position:"fixed",top:0,left:0,right:0,bottom:0}}>
             {picking&&<PickerSheet seatId={picking} friends={friends} seats={seats} trunkOccupants={trunkOccupants} bootedIds={bootedIds} friendOverrides={friendOverrides} onSelect={assign} onClose={()=>setPicking(null)} onOpenFriends={()=>{setPicking(null);setTab("friends");}} onOpenContacts={()=>{setPicking(null);setTab("contacts");}}/>}
             {pickingTrunk&&<PickerSheet seatId={pickingTrunk} friends={friends} seats={seats} trunkOccupants={trunkOccupants} bootedIds={bootedIds} friendOverrides={friendOverrides} onSelect={(slotId,p)=>assignTrunk(slotId,p)} onClose={()=>setPickingTrunk(null)} onOpenFriends={()=>{setPickingTrunk(null);setTab("friends");}} onOpenContacts={()=>{setPickingTrunk(null);setTab("contacts");}}/>}
             {avatarEdit&&(
