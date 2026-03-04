@@ -121,7 +121,7 @@ function OctAvatar({initial,color,size=52,expelDim=false,expelFocus=false,seatBg
       </defs>
       <polygon points="30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30" fill={seatBg}/>
       <rect x="0" y="0" width="100" height="100" fill={color} mask={`url(#bm${uid})`}/>
-      <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
+      <text x="50" y="50" textAnchor="middle" dy="0.35em"
         fill="#fff" fontSize={75} fontWeight="700"
         fontFamily="-apple-system,BlinkMacSystemFont,sans-serif"
         mask={`url(#bm${uid})`}
@@ -168,18 +168,23 @@ function BootIcon({sz=56, animate=false}){
 }
 
 /* ─── KickConfirmBubble ─────────────────────────────────── */
-function KickConfirmBubble({person,onConfirm,onCancel}){
+function KickConfirmBubble({person,onConfirm,onCancel,fromTrunk}){
   const bg = usePaintBg();
   const dm=useDM();
   return(
-    <div style={{position:"absolute",inset:0,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.45)",backdropFilter:"blur(6px)"}} onClick={onCancel}>
+    <div style={{position:"absolute",inset:0,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.45)",backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)"}} onClick={onCancel}>
       <style>{`@keyframes bootKick{from{transform:rotate(-30deg);}to{transform:rotate(15deg);}}`}</style>
       <div onClick={e=>e.stopPropagation()} style={{background:dm?"#22223a":bg,borderRadius:22,padding:"26px 22px 20px",width:280,textAlign:"center",boxShadow:"0 24px 60px rgba(0,0,0,0.3512)",animation:"popIn 0.22s cubic-bezier(.34,1.56,.64,1)"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:16}}>
           <BootIcon sz={56} animate={true}/>
-          <div style={{width:56,height:56,clipPath:OCT,flexShrink:0,background:person.friendColor||getSeatColor(person.name),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:20,fontWeight:700}}>{person.initial}</div>
+          <OctAvatar initial={person.initial} color={person.friendColor||getSeatColor(person.name)} size={56} seatBg={dm?"#1e1a30":bg}/>
         </div>
-        <p style={{fontSize:17,fontWeight:700,color:dm?"#e0e0f0":"#1c1c1e",marginBottom:20}}>Boot {person.name} from Van?</p>
+        <p style={{fontSize:17,fontWeight:700,color:dm?"#e0e0f0":"#1c1c1e",marginBottom:20,whiteSpace:fromTrunk?"nowrap":"normal",overflow:"hidden",textOverflow:"ellipsis"}}>
+          {fromTrunk
+            ? <>Boot <span style={{color:dm?"#d4a820":"#b8840a",fontWeight:800,textShadow:dm?"0 1px 0 rgba(0,0,0,0.8), 0 -1px 0 rgba(255,220,80,0.4)":"0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(100,70,0,0.3)"}}>{person.name}</span> from <span style={{color:dm?"#d4a820":"#b8840a",fontWeight:800,textShadow:dm?"0 1px 0 rgba(0,0,0,0.8), 0 -1px 0 rgba(255,220,80,0.4)":"0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(100,70,0,0.3)"}}>Trunk</span>{"\u200a??!!"}</>
+            : <>Give "<span style={{color:"rgba(180,50,50,0.82)",fontWeight:800,textShadow:"0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(100,20,20,0.35)"}}>{person.name}</span>" Da <span style={{color:"rgba(180,50,50,0.82)",fontWeight:800,textShadow:"0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(100,20,20,0.35)"}}>Boot</span>?</>
+          }
+        </p>
         <div style={{display:"flex",gap:10}}>
           <button onClick={onCancel} className="btn3d" style={{flex:1,padding:"12px 0",borderRadius:12,border:"1px solid #e0e0e6",background:"#d8d8de",fontSize:15,cursor:"pointer",color:"#555",fontWeight:500}}>Cancel</button>
           <button onClick={onConfirm} className="btn3d btn3d-danger" style={{flex:1.4,padding:"11px 14px",border:"2px solid rgba(180,50,50,0.82)",background:"rgba(180,50,50,0.15)",cursor:"pointer",color:"rgba(140,30,30,0.95)",fontWeight:700,fontSize:14,borderRadius:"12px 24px 24px 12px",display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
@@ -248,6 +253,7 @@ function Seat({id,person,onTap,onLongPress,onOccupiedTap,w,h,av,expelMode,expelF
         transition:"background 0.15s,border 0.15s,box-shadow 0.15s",
         overflow:"visible",
         opacity:isDragSource?0.38:1,
+        touchAction:person?"none":"auto",
       }}
     >
       {person ? (
@@ -406,8 +412,8 @@ function VanSVG({trunkFillCount, onSettings, paintColors}){
       <rect x={TRUNK_RECT.x+4} y={TRUNK_RECT.y+4} width={TRUNK_RECT.w-8} height={TRUNK_RECT.h-8} rx="8"
         fill={dm?"#252535":"#d0cedd"} stroke="none" filter="url(#wf)" style={{pointerEvents:"none"}}/>
       {/* Gear */}
-      <text x={CX} y={NOSE_H - 1} textAnchor="middle" fontSize="11" fill="#a8a8b4" style={{pointerEvents:"none",userSelect:"none",transformBox:"fill-box",transformOrigin:"center",transform:"rotate(55deg) scaleY(-1)"}} >⚙️</text>
-      <rect x={CX-9} y={NOSE_H-12} width={18} height={14} fill="transparent" style={{cursor:onSettings?"pointer":"default",pointerEvents:onSettings?"all":"none"}} onClick={onSettings}/>
+      <text x={CX} y={NOSE_H - 10} textAnchor="middle" fontSize="11" fill="#a8a8b4" style={{pointerEvents:"none",userSelect:"none"}} transform={`rotate(145,${CX},${NOSE_H-10})`}>⚙️</text>
+      <rect x={CX-9} y={NOSE_H-18} width={18} height={14} fill="transparent" style={{cursor:onSettings?"pointer":"default",pointerEvents:onSettings?"all":"none"}} onClick={onSettings}/>
       {showTrunkLabel && (
         <text x={CX} y={trunkMidY-2} textAnchor="middle" fontSize="9" fontWeight="800" letterSpacing="2.8" fill="#b0b4be" fontFamily="-apple-system,sans-serif" style={{pointerEvents:"none",userSelect:"none",filter:"url(#trunkEmboss)"}}>TRUNK</text>
       )}
@@ -434,7 +440,7 @@ function getSeatCenters(){
 const SEAT_CENTERS = getSeatCenters();
 
 /* ─── VanIllustration ───────────────────────────────────── */
-function VanIllustration({seats,trunkOccupants,onTap,onLongPress,onOccupiedTap,expelMode,expelFocus,onExpelTap,incomingPerson,onSwapSeats,onSwapTrunk,onPickTrunkSlot,onRemoveTrunk,onKickConfirm,onSettings,paintColors}){
+function VanIllustration({seats,trunkOccupants,onTap,onLongPress,onOccupiedTap,expelMode,expelFocus,onExpelTap,incomingPerson,onSwapSeats,onSwapTrunk,onPickTrunkSlot,onRemoveTrunk,onKickConfirm,onSettings,onDragStateChange,paintColors}){
   const dm=useDM();
   const vanRef = useRef(null);
   const [dragSrc, setDragSrc] = useState(null);
@@ -487,6 +493,7 @@ function VanIllustration({seats,trunkOccupants,onTap,onLongPress,onOccupiedTap,e
       const dy = me.clientY - dragStartPos.current.y;
       if(!activeDrag.current && Math.sqrt(dx*dx+dy*dy) > 8){
         activeDrag.current = true;
+        onDragStateChange && onDragStateChange(true);
         clearTimeout(pressTimerRef.current);
         const src = {zone, id};
         setDragSrc(src); dragSrcRef.current = src;
@@ -514,6 +521,7 @@ function VanIllustration({seats,trunkOccupants,onTap,onLongPress,onOccupiedTap,e
         }
       }
       activeDrag.current = false; outsideRef.current = false;
+      onDragStateChange && onDragStateChange(false);
       setDragSrc(null); setDragPos(null); setDragOver(null); setOutsideVan(false);
       dragSrcRef.current = null; dragOverRef.current = null;
       window.removeEventListener("pointermove", onMove);
@@ -575,13 +583,13 @@ function VanIllustration({seats,trunkOccupants,onTap,onLongPress,onOccupiedTap,e
                 display:"flex",alignItems:"center",justifyContent:"center",cursor:"grab",borderRadius:"50%",
                 background:isOver?"rgba(74,144,217,0.18)":"transparent",
                 border:isOver?"2px solid rgba(74,144,217,0.6)":"2px solid transparent",
-                transition:"background 0.15s,border 0.15s",opacity:isSrc?0.3:1}}>
+                transition:"background 0.15s,border 0.15s",opacity:isSrc?0.3:1,touchAction:"none"}}>
               <OctAvatar initial={person.initial} color={color} size={TRUNK_AV} seatBg="#d2d2da"/>
             </div>
           );
         });
       })()}
-      {outsideVan && dragSrc && dragSrc.zone==="seat" && (
+      {outsideVan && dragSrc && (dragSrc.zone==="seat" || dragSrc.zone==="trunk") && (
         <div style={{position:"absolute",inset:-8,borderRadius:18,border:"3px solid rgba(200,40,40,0.55)",boxShadow:"0 0 0 4px rgba(200,40,40,0.12)",pointerEvents:"none",animation:"fadeIn 0.15s"}}/>
       )}
       {dragSrc && dragPos && dragPerson && (
@@ -716,7 +724,7 @@ function PickerSheet({seatId,friends,onSelect,onClose,seats,trunkOccupants,boote
   const dm=useDM();
   return(
     <div style={{position:"absolute",inset:0,zIndex:200,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.2760)",backdropFilter:"blur(4px)"}}/>
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.2760)",backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)"}}/>
       <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.14)",display:"flex",flexDirection:"column",overflow:"hidden"}}
         onTouchStart={e=>{ e.currentTarget._sy=e.touches[0].clientY; }} onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sy > 44) onClose(); }}
         onMouseDown={e=>{ e.currentTarget._sy=e.clientY; }} onMouseUp={e=>{ if(e.clientY - e.currentTarget._sy > 44) onClose(); }}>
@@ -726,7 +734,7 @@ function PickerSheet({seatId,friends,onSelect,onClose,seats,trunkOccupants,boote
         <div style={{display:"flex",alignItems:"center",padding:"4px 20px 0px",flexShrink:0,minHeight:36}}>
           <span style={{fontSize:17,fontWeight:800,fontFamily:"'Nunito',sans-serif",color:dm?"#e0e0f0":"#1c1c1e"}}>Add to Seat</span>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,padding:"12px 24px 20px"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,padding:"12px 24px 20px",paddingBottom:"calc(20px + env(safe-area-inset-bottom, 0px)"}}>
           <button onClick={onOpenFriends} className={dm?"btn3d btn3d-dark":"btn3d"} style={{width:"100%",padding:"15px 0",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:600,background:dm?"#2e2e48":"#d4d4da",color:dm?"#c0c0e0":"#5a5a62",border:dm?"1px solid #3a3a54":"1px solid #e4e4ea"}}>Recent Riders</button>
           <button onClick={onOpenContacts} className={dm?"btn3d btn3d-dark":"btn3d"} style={{width:"100%",padding:"15px 0",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:600,background:dm?"#2e2e48":"#d4d4da",color:dm?"#c0c0e0":"#5a5a62",border:dm?"1px solid #3a3a54":"1px solid #e4e4ea"}}>Contacts</button>
         </div>
@@ -827,7 +835,7 @@ function ColorPicker({value, onChange, onSliderHold, onSliderRelease, peeking}){
             onMouseDown={handleSliderDown} onMouseUp={handleSliderUp}
             onTouchStart={handleSliderDown} onTouchEnd={handleSliderUp}
             onChange={e=>{ const v=Number(e.target.value); setOpacity(v); emitColor(picked,v); }}
-            style={{position:"absolute",top:"50%",left:0,right:0,width:"100%",transform:"translateY(-50%)",appearance:"none",WebkitAppearance:"none",background:"transparent",cursor:"pointer",height:20,margin:0,padding:0}}/>
+            style={{position:"absolute",top:"50%",left:0,right:0,width:"100%",transform:"translateY(-50%)",appearance:"none",WebkitAppearance:"none",background:"transparent",cursor:"pointer",height:28,margin:0,padding:0,touchAction:"none"}}/>
         </div>
         <span style={{fontSize:11,color:"#555",fontFamily:"monospace",fontWeight:600,flexShrink:0,minWidth:28,textAlign:"right",visibility:peeking?"hidden":"visible"}}>{opacity}%</span>
       </div>
@@ -848,10 +856,10 @@ function AvatarEditSheet({person,onClose,onSave,onHonk}){
   const avatarColor = isBooted ? "rgba(180,50,50,0.72)" : bgColor;
   return(
     <div style={{position:"absolute",inset:0,zIndex:300,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)"}}/>
-      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 20px 20px"}}
+      <div onClick={()=>{ if(step==="color") onSave({...person,initial:text||person.initial,friendColor:bgColor}); onClose(); }} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
+      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 20px 20px",paddingBottom:"calc(20px + env(safe-area-inset-bottom, 0px))"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
-        onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60) onClose(); }}>
+        onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60){ if(step==="color") onSave({...person,initial:text||person.initial,friendColor:bgColor}); onClose(); } }}>
         <div style={{display:"flex",justifyContent:"center",marginBottom:12,cursor:"grab"}} onMouseDown={e=>{ e.currentTarget._sy=e.clientY; }} onMouseUp={e=>{ if(e.clientY - e.currentTarget._sy > 44) onClose(); }}>
           <div style={{width:38,height:4,borderRadius:2,background:"#a0a0a8"}}/>
         </div>
@@ -861,7 +869,7 @@ function AvatarEditSheet({person,onClose,onSave,onHonk}){
             <span style={{fontSize:17,fontWeight:800,fontFamily:"'Nunito',sans-serif",color:dm?"#e0e0f0":"#1c1c1e"}}>{titleMap[step]||step}</span>
           </div>
         )}
-        <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:32}}>
           <OctAvatar initial={text||person.initial} color={avatarColor} size={66}/>
         </div>
         {step==="ask"&&(<div style={{display:"flex",gap:10,alignItems:"stretch"}}>
@@ -882,11 +890,10 @@ function AvatarEditSheet({person,onClose,onSave,onHonk}){
           </div>
         )}
         {step==="color"&&(<div>
-          <ColorPicker value={bgColor} onChange={setBgColor}/>
-          <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>setStep("menu")} className="btn3d" style={{flex:1,padding:"11px 0",borderRadius:10,border:"1px solid #e0e0e6",background:"#d8d8de",cursor:"pointer",fontSize:14,color:"#555"}}>← Back</button>
-            <button onClick={()=>{onSave({...person,initial:text||person.initial,friendColor:bgColor});onClose();}} className="btn3d btn3d-primary" style={{flex:2,padding:"11px 0",borderRadius:10,cursor:"pointer",fontSize:14,fontWeight:600}}>Save</button>
+          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8}}>
+            <button onClick={()=>setBgColor(getFriendColor(person.id))} className="btn3d" style={{padding:"6px 14px",borderRadius:10,border:"1px solid #e0e0e6",background:"#d8d8de",cursor:"pointer",fontSize:12,color:"#555",fontWeight:600}}>Default</button>
           </div>
+          <ColorPicker value={bgColor} onChange={setBgColor}/>
         </div>)}
         {step==="photo"&&(<div style={{textAlign:"center",padding:"10px 0 6px"}}>
           <p style={{color:"#8e8e93",fontSize:14,marginBottom:18}}>Photo library access would be<br/>requested on a real device.</p>
@@ -922,8 +929,8 @@ function PaintShopSheet({colors,onClose,onChange,onPeekTab,onPeekEnd}){
   const sheetBg = dm?"#22223a":"#d4d4da";
   return(
     <div style={{position:"absolute",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",visibility:peeking?"hidden":"visible"}}/>
-      <div style={{position:"relative",zIndex:1,background:peeking?"transparent":sheetBg,borderRadius:"22px 22px 0 0",boxShadow:peeking?"none":"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 12px",maxHeight:"80vh",display:"flex",flexDirection:"column"}}
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)",visibility:peeking?"hidden":"visible"}}/>
+      <div style={{position:"relative",zIndex:1,background:peeking?"transparent":sheetBg,borderRadius:"22px 22px 0 0",boxShadow:peeking?"none":"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 12px",paddingBottom:"calc(12px + env(safe-area-inset-bottom, 0px))",maxHeight:"80vh",display:"flex",flexDirection:"column"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
         onTouchEnd={e=>{ if(!peeking && e.changedTouches[0].clientY - e.currentTarget._sw > 60) onClose(); }}>
         <div style={{display:"flex",justifyContent:"center",marginBottom:12,cursor:"grab",visibility:peeking?"hidden":"visible"}}>
@@ -985,8 +992,8 @@ function PlateEditor({plate, dm, bg, onSave, onClose}){
   const formatted = chars.slice(0,3).join('').trim()+'-'+chars.slice(3).join('').trim();
   return(
     <div style={{position:"absolute",inset:0,zIndex:30,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(6px)"}}/>
-      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.2)",padding:"20px 20px 28px"}}
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)"}}/>
+      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.2)",padding:"20px 20px 28px",paddingBottom:"calc(28px + env(safe-area-inset-bottom, 0px))"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
         onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60) onClose(); }}>
         <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
@@ -1070,8 +1077,8 @@ function SettingsSheet({settings,onClose,onToggle,onOpenPaintShop,onHonk,onCode}
   ];
   return(
     <div style={{position:"absolute",inset:0,zIndex:400,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)"}}/>
-      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 0"}}
+      <div onClick={onClose} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
+      <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 0",paddingBottom:"env(safe-area-inset-bottom, 0px)"}}
         onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
         onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60) onClose(); }}>
         <div style={{display:"flex",justifyContent:"center",marginBottom:12,cursor:"grab"}} onMouseDown={e=>{ e.currentTarget._sy=e.clientY; }} onMouseUp={e=>{ if(e.clientY - e.currentTarget._sy > 44) onClose(); }}>
@@ -1135,8 +1142,8 @@ function SettingsSheet({settings,onClose,onToggle,onOpenPaintShop,onHonk,onCode}
       </div>
       {showHitchhikers && (
         <div style={{position:"absolute",inset:0,zIndex:10,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-          <div onClick={()=>setShowHitchhikers(false)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)"}}/>
-          <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 0",maxHeight:"70%",display:"flex",flexDirection:"column"}}
+          <div onClick={()=>setShowHitchhikers(false)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
+          <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 0 0",paddingBottom:"env(safe-area-inset-bottom, 0px)",maxHeight:"70%",display:"flex",flexDirection:"column"}}
             onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
             onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60) setShowHitchhikers(false); }}>
             <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
@@ -1190,8 +1197,8 @@ function SettingsSheet({settings,onClose,onToggle,onOpenPaintShop,onHonk,onCode}
       )}
       {selectedHitchhiker && (
         <div style={{position:"absolute",inset:0,zIndex:20,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-          <div onClick={()=>setSelectedHitchhiker(null)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)"}}/>
-          <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 20px 20px"}}
+          <div onClick={()=>setSelectedHitchhiker(null)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3512)",backdropFilter:"blur(5px)",WebkitBackdropFilter:"blur(5px)"}}/>
+          <div style={{position:"relative",zIndex:1,background:dm?"#22223a":bg,borderRadius:"22px 22px 0 0",boxShadow:"0 -6px 32px rgba(0,0,0,0.15)",padding:"14px 20px 20px",paddingBottom:"calc(20px + env(safe-area-inset-bottom, 0px))"}}
             onTouchStart={e=>{ e.currentTarget._sw=e.touches[0].clientY; }}
             onTouchEnd={e=>{ if(e.changedTouches[0].clientY - e.currentTarget._sw > 60) setSelectedHitchhiker(null); }}>
             <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
@@ -1483,9 +1490,9 @@ function TabBar({active,onChange}){
 /* ─── App ────────────────────────────────────────────────── */
 /* ─── NumberOverlay ─────────────────────────────────────────── */
 function NumberOverlay({num, dims, onSwipe}){
-  const [localDims, setLocalDims] = React.useState(dims||{w:window.innerWidth, h:window.innerHeight});
+  const [localDims, setLocalDims] = React.useState(dims||{w:getVW(), h:getVH()});
   React.useEffect(()=>{
-    const fn = () => { setTimeout(()=>{ setLocalDims({w:window.innerWidth, h:window.innerHeight}); }, 80); };
+    const fn = () => { setTimeout(()=>{ setLocalDims({w:getVW(), h:getVH()}); }, 80); };
     window.addEventListener('resize', fn);
     window.addEventListener('orientationchange', fn);
     return ()=>{ window.removeEventListener('resize', fn); window.removeEventListener('orientationchange', fn); };
@@ -1500,7 +1507,7 @@ function NumberOverlay({num, dims, onSwipe}){
         const dy=Math.abs(e.changedTouches[0].clientY - e.currentTarget._sy);
         if(dx>30||dy>30) onSwipe();
       }}
-      style={{position:"fixed",inset:0,zIndex:10000,background:"#FFD600",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+      style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:10000,background:"#FFD600",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
       <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
       <div style={{
         fontSize:fs,
@@ -1520,16 +1527,19 @@ function NumberOverlay({num, dims, onSwipe}){
 
 /* ─── BigTitleOverlay ────────────────────────────────────── */
 function BigTitleOverlay({bg, onClose, showNumber, setShowNumber, randomNum, setRandomNum}){
-  const [dims, setDims] = React.useState({w:window.innerWidth, h:window.innerHeight});
+  const [dims, setDims] = React.useState({w:getVW(), h:getVH()});
   React.useEffect(()=>{
-    const fn = () => { setTimeout(()=>{ setDims({w:window.innerWidth, h:window.innerHeight}); }, 80); };
+    const fn = () => { setTimeout(()=>{ setDims({w:getVW(), h:getVH()}); }, 80); };
     window.addEventListener('resize', fn);
     window.addEventListener('orientationchange', fn);
     return ()=>{ window.removeEventListener('resize', fn); window.removeEventListener('orientationchange', fn); };
   },[]);
   const isLandscape = dims.w > dims.h;
-  const shadow = "0 1px 0 #888, 0 2px 0 #7a7a7a, 0 3px 0 #6e6e6e, 0 4px 0 #626262, 0 5px 0 #565656, 0 6px 0 #4a4a4a, 0 7px 0 #3e3e3e, 0 8px 0 #323232, 0 9px 12px rgba(0,0,0,0.5), 0 12px 20px rgba(0,0,0,0.35)";
-  const base = {fontWeight:800, fontFamily:"'Nunito',sans-serif", lineHeight:1, textAlign:"center", color:"#2a2a2a", textShadow:shadow};
+  const dm = useDM();
+  const shadow = dm
+    ? "0 1px 0 #000, 0 2px 0 #000, 0 3px 0 #0a0a18, 0 4px 0 #0e0e20, 0 5px 0 #121228, 0 6px 0 #161630, 0 7px 0 #1a1a38, 0 8px 0 #1e1e40, 0 9px 12px rgba(0,0,0,0.8), 0 12px 20px rgba(0,0,0,0.6)"
+    : "0 1px 0 #888, 0 2px 0 #7a7a7a, 0 3px 0 #6e6e6e, 0 4px 0 #626262, 0 5px 0 #565656, 0 6px 0 #4a4a4a, 0 7px 0 #3e3e3e, 0 8px 0 #323232, 0 9px 12px rgba(0,0,0,0.5), 0 12px 20px rgba(0,0,0,0.35)";
+  const base = {fontWeight:800, fontFamily:"'Nunito',sans-serif", lineHeight:1, textAlign:"center", color:dm?"#e8e8f0":"#2a2a2a", textShadow:shadow};
 
   const lastTap = React.useRef(0);
 
@@ -1558,9 +1568,9 @@ function BigTitleOverlay({bg, onClose, showNumber, setShowNumber, randomNum, set
     const fsByW = Math.floor(dims.w / (8 * 0.58));
     const fs = Math.min(fsByH, fsByW);
     return (
-      <div {...swipeHandlers} style={{position:"fixed",inset:0,zIndex:9999,background:bg,display:"flex",flexDirection:"column",alignItems:"stretch",justifyContent:"space-evenly",cursor:"pointer",padding:"20px 0"}}>
+      <div {...swipeHandlers} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9999,background:bg,display:"flex",flexDirection:"column",alignItems:"stretch",justifyContent:"space-evenly",cursor:"pointer",padding:"20px 0"}}>
         <div style={{...base, fontSize:fs}}>Who's in</div>
-        <div style={{...base, fontSize:fs}}>Your Van<span style={{display:"inline-block",width:"0.25em"}}/><em>?</em></div>
+        <div style={{...base, fontSize:fs}}>Your Van<span style={{display:"inline-block",width:"0.06em"}}/><em>?</em></div>
       </div>
     );
   }
@@ -1569,15 +1579,17 @@ function BigTitleOverlay({bg, onClose, showNumber, setShowNumber, randomNum, set
   const fsByH = Math.floor((dims.h - 80) / 4);
   const fs = Math.min(fsByW, fsByH);
   return (
-    <div {...swipeHandlers} style={{position:"fixed",inset:0,zIndex:9999,background:bg,display:"flex",flexDirection:"column",alignItems:"stretch",justifyContent:"space-evenly",cursor:"pointer",padding:"40px 0"}}>
+    <div {...swipeHandlers} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9999,background:bg,display:"flex",flexDirection:"column",alignItems:"stretch",justifyContent:"space-evenly",cursor:"pointer",padding:"40px 0"}}>
       <div style={{...base, fontSize:fs}}>Who's</div>
       <div style={{...base, fontSize:fs}}>in</div>
       <div style={{...base, fontSize:fs, fontStyle:"italic"}}>Your</div>
-      <div style={{...base, fontSize:fs}}>Van<span style={{display:"inline-block",width:"0.25em"}}/><em>?</em></div>
+      <div style={{...base, fontSize:fs}}>Van<span style={{display:"inline-block",width:"0.06em"}}/><em>?</em></div>
     </div>
   );
 }
 
+const getVW=()=>(window.visualViewport?.width||getVW());
+const getVH=()=>(window.visualViewport?.height||getVH());
 export default function App(){
   useEffect(()=>{
     // Ensure correct viewport for iOS
@@ -1589,6 +1601,7 @@ export default function App(){
     document.documentElement.style.overscrollBehavior='none';
   },[]);
   const[tab,setTab]=useState("van");
+  const vanDraggingRef = useRef(false);
   const[seats,setSeats]=useState(INITIAL_SEATS);
   const[trunkOccupants,setTrunkOccupants]=useState(INITIAL_TRUNK);
   const[friends,setFriends]=useState([]);
@@ -1646,7 +1659,7 @@ export default function App(){
       if(alreadySeated||alreadyTrunked) return cur;
       if(isFull(cur)){setIncomingPerson(p);setExpelMode(true);setExpelFocus(null);setTab("van");return cur;}
       const seat=findNextSeat(cur);
-      if(seat){ setTab("van"); addToFriends(p); setBootedIds(s=>{const n=new Set(s);n.delete(person.id);return n;}); return{...cur,[seat]:p}; }
+      if(seat){ setTab("van"); addToFriends(p); setRideOrDies(cur=>cur.filter(r=>r.id!==person.id)); setBootedIds(s=>{const n=new Set(s);n.delete(person.id);return n;}); return{...cur,[seat]:p}; }
       return cur;
     });
   },[findNextSeat,addToFriends,friendOverrides]);
@@ -1723,6 +1736,7 @@ export default function App(){
       onPickTrunkSlot={slotId=>setPickingTrunk(slotId)} onRemoveTrunk={removeTrunk}
       onKickConfirm={handleKickConfirm}
       onSettings={tab==="van" ? ()=>setShowSettings(true) : undefined}
+      onDragStateChange={active=>{ vanDraggingRef.current=active; }}
       paintColors={paintColors}/>
   );
 
@@ -1782,12 +1796,24 @@ export default function App(){
               {settings.lights ? (
                 <h1 style={{fontSize:22,fontWeight:800,fontFamily:"'Nunito',sans-serif",letterSpacing:"-0.01em",margin:0,
                   background:"linear-gradient(90deg, #1e1c2c 0%, #d4c070 10%, #e8d880 16%, #c0aa60 26%, #5a5240 38%, #4a4438 48%, #504838 58%, #b8a458 72%, #e0d070 82%, #d0be68 90%, #1e1c2c 100%)",
-                  WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Who's in<em style={{marginLeft:"0.15em"}}>Your</em> Van<em>?</em></h1>
+                  WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Who's in<em style={{marginLeft:"0.15em"}}>Your</em><span style={{display:"inline-block",width:"0.06em"}}/> Van<em>?</em></h1>
               ) : (
-                <h1 style={{fontSize:22,fontWeight:800,fontFamily:"'Nunito',sans-serif",color:"#3a3a40",letterSpacing:"-0.01em",textShadow:"0 0 20px rgba(50,50,64,0.14)",margin:0}}>Who's in<em style={{marginLeft:"0.15em"}}>Your</em> Van<em>?</em></h1>
+                <h1 style={{fontSize:22,fontWeight:800,fontFamily:"'Nunito',sans-serif",color:"#3a3a40",letterSpacing:"-0.01em",textShadow:"0 0 20px rgba(50,50,64,0.14)",margin:0}}>Who's in<em style={{marginLeft:"0.15em"}}>Your</em><span style={{display:"inline-block",width:"0.06em"}}/> Van<em>?</em></h1>
               )}
             </div>
-            <div style={{flex:1,overflow:"hidden",minHeight:0,position:"relative",touchAction:"pan-y"}}>
+            <div style={{flex:1,overflow:"hidden",minHeight:0,position:"relative",touchAction:"pan-y"}}
+              onTouchStart={e=>{ const t=e.touches[0]; e.currentTarget._sx=t.clientX; e.currentTarget._sy=t.clientY; e.currentTarget._swiped=false; }}
+              onTouchMove={e=>{
+                if(e.currentTarget._swiped) return;
+                if(vanDraggingRef.current) return;
+                const dx=e.touches[0].clientX - e.currentTarget._sx;
+                const dy=Math.abs(e.touches[0].clientY - e.currentTarget._sy);
+                if(Math.abs(dx) < 8) return;
+                if(dy > Math.abs(dx)) return;
+                e.currentTarget._swiped=true;
+                if(dx < 0){ if(tab==="friends") setTab("van"); else if(tab==="van") setTab("contacts"); }
+                else { if(tab==="contacts") setTab("van"); else if(tab==="van") setTab("friends"); }
+              }}>
               <div style={{display:"flex",width:"300%",height:"100%",transform:tab==="friends"?"translateX(0%)":tab==="van"?"translateX(-33.333%)":"translateX(-66.666%)",transition:"transform 0.32s cubic-bezier(.4,0,.2,1)"}}>
                 {/* Panel 1 — Friends */}
                 <div style={{width:"33.333%",height:"100%",display:"flex",flexDirection:"row",overflow:"hidden"}}>
@@ -1839,8 +1865,8 @@ export default function App(){
           </div>
         </div>
         <TabBar active={tab} onChange={setTab}/>
-        <div className="modal-root" style={{inset:0,zIndex:200,pointerEvents:"none",display:(picking||pickingTrunk||avatarEdit||emojiTarget||emojiPerson||showSettings||showPaintShop||kickPending)?"block":"none"}}>
-          <div style={{pointerEvents:"auto"}}>
+        <div className="modal-root" style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:200,pointerEvents:"none",display:(picking||pickingTrunk||avatarEdit||emojiTarget||emojiPerson||showSettings||showPaintShop||kickPending)?"block":"none"}}>
+          <div style={{pointerEvents:"auto",position:"absolute",top:0,left:0,right:0,bottom:0}}>
             {picking&&<PickerSheet seatId={picking} friends={friends} seats={seats} trunkOccupants={trunkOccupants} bootedIds={bootedIds} friendOverrides={friendOverrides} onSelect={assign} onClose={()=>setPicking(null)} onOpenFriends={()=>{setPicking(null);setTab("friends");}} onOpenContacts={()=>{setPicking(null);setTab("contacts");}}/>}
             {pickingTrunk&&<PickerSheet seatId={pickingTrunk} friends={friends} seats={seats} trunkOccupants={trunkOccupants} bootedIds={bootedIds} friendOverrides={friendOverrides} onSelect={(slotId,p)=>assignTrunk(slotId,p)} onClose={()=>setPickingTrunk(null)} onOpenFriends={()=>{setPickingTrunk(null);setTab("friends");}} onOpenContacts={()=>{setPickingTrunk(null);setTab("contacts");}}/>}
             {avatarEdit&&(
@@ -1863,10 +1889,10 @@ export default function App(){
             {emojiPerson&&<EmojiSheet person={emojiPerson} onClose={()=>{ setEmojiPerson(null); if(emojiFromHitchhiker){ setEmojiFromHitchhiker(false); } }}/>}
             {showPaintShop&&<PaintShopSheet colors={paintColors} onClose={()=>setShowPaintShop(false)} onChange={(k,v)=>setPaintColors(p=>({...p,[k]:v}))} onPeekTab={t=>setTab(t)} onPeekEnd={()=>setTab("van")}/>}
             {kickPending&&(
-              <KickConfirmBubble person={kickPending.person}
+              <KickConfirmBubble person={kickPending.person} fromTrunk={kickPending.seatId.startsWith("__trunk__")}
                 onConfirm={()=>{
                   setBootedIds(s=>{const n=new Set(s);n.add(kickPending.person.id);return n;});
-                  if(kickPending.seatId.startsWith("__trunk__")) removeTrunk(kickPending.seatId.replace("__trunk__",""));
+                  if(kickPending.seatId.startsWith("__trunk__")){ removeTrunk(kickPending.seatId.replace("__trunk__","")); setRideOrDies(cur=>cur.filter(r=>r.id!==kickPending.person.id)); }
                   else remove(kickPending.seatId);
                   setKickPending(null);
                 }}
@@ -1879,7 +1905,7 @@ export default function App(){
         <BigTitleOverlay bg={paintColors?.background||"#c8cfd3"} onClose={()=>setShowBigTitle(false)} showNumber={showNumber} setShowNumber={setShowNumber} randomNum={randomNum} setRandomNum={setRandomNum}/>
       )}
       {!showBigTitle && showNumber && (
-        <NumberOverlay num={randomNum} dims={{w:window.innerWidth,h:window.innerHeight}} onSwipe={()=>setShowNumber(false)}/>
+        <NumberOverlay num={randomNum} dims={{w:getVW(),h:getVH()}} onSwipe={()=>setShowNumber(false)}/>
       )}
     </>
     </DM.Provider>
